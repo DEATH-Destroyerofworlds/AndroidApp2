@@ -1,46 +1,26 @@
 #!/usr/bin/env python3
 """
-Main script for web scraping project
+Main script for web scraping project with GUI
 """
-import sys
-import json
-from scraping import scrape_product_name, scrape_multiple_products
+import tkinter as tk
+from tkinter import messagebox
+import webbrowser
+import urllib.parse
+from gui import ProductSearchGUI
+from scraping import scrape_product_name
 
 
 def main():
     """
-    Main function to demonstrate scraping functionality
+    Main function to run the GUI application
     """
-    print("Web Scraping Tool")
-    print("=" * 20)
-    
-    # Example URLs - replace with actual URLs you want to scrape
-    test_urls = [
-        "https://example.com/product1",
-        "https://example.com/product2",
-    ]
-    
-    print("\nScraping single product...")
     try:
-        product_name = scrape_product_name(test_urls[0])
-        print(f"Product name: {product_name}")
+        root = tk.Tk()
+        app = ProductSearchGUI(root)
+        root.mainloop()
     except Exception as e:
-        print(f"Error scraping single product: {e}")
-    
-    print("\nScraping multiple products...")
-    try:
-        results = scrape_multiple_products(test_urls)
-        print("Results:")
-        for url, name in results.items():
-            print(f"  {url}: {name}")
-        
-        # Save results to JSON file
-        with open('scraping_results.json', 'w') as f:
-            json.dump(results, f, indent=2)
-        print("\nResults saved to scraping_results.json")
-        
-    except Exception as e:
-        print(f"Error scraping multiple products: {e}")
+        print(f"Error starting application: {e}")
+        messagebox.showerror("Error", f"Failed to start application: {e}")
 
 
 if __name__ == "__main__":
