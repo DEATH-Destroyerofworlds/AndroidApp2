@@ -1,0 +1,5 @@
+selenium>=4.9.0
+undetected-chromedriver>=3.5.0
+websocket-client>=1.8.0
+requests>=2.32.0
+pyinstaller>=6.0.0
