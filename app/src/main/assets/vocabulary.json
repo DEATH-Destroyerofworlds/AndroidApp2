@@ -1,0 +1,77 @@
+[
+  {
+    "rus_word": "Привет",
+    "eng_word": "Hello",
+    "transcript": "həˈloʊ"
+  },
+  {
+    "rus_word": "Спасибо",
+    "eng_word": "Thank you",
+    "transcript": "θæŋk juː"
+  },
+  {
+    "rus_word": "Пожалуйста",
+    "eng_word": "Please",
+    "transcript": "pliːz"
+  },
+  {
+    "rus_word": "Извините",
+    "eng_word": "Excuse me",
+    "transcript": "ɪkˈskjuːz miː"
+  },
+  {
+    "rus_word": "Да",
+    "eng_word": "Yes",
+    "transcript": "jɛs"
+  },
+  {
+    "rus_word": "Нет",
+    "eng_word": "No",
+    "transcript": "noʊ"
+  },
+  {
+    "rus_word": "Хорошо",
+    "eng_word": "Good",
+    "transcript": "ɡʊd"
+  },
+  {
+    "rus_word": "Плохо",
+    "eng_word": "Bad",
+    "transcript": "bæd"
+  },
+  {
+    "rus_word": "Дом",
+    "eng_word": "House",
+    "transcript": "haʊs"
+  },
+  {
+    "rus_word": "Вода",
+    "eng_word": "Water",
+    "transcript": "ˈwɔːtər"
+  },
+  {
+    "rus_word": "Еда",
+    "eng_word": "Food",
+    "transcript": "fuːd"
+  },
+  {
+    "rus_word": "Время",
+    "eng_word": "Time",
+    "transcript": "taɪm"
+  },
+  {
+    "rus_word": "Деньги",
+    "eng_word": "Money",
+    "transcript": "ˈmʌni"
+  },
+  {
+    "rus_word": "Работа",
+    "eng_word": "Work",
+    "transcript": "wɜːrk"
+  },
+  {
+    "rus_word": "Семья",
+    "eng_word": "Family",
+    "transcript": "ˈfæməli"
+  }
+]
