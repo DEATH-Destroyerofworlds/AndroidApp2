@@ -1,65 +1,69 @@
-package com.example.jsonreader;
+package com.example.prototype.backend;
 
 import android.content.Context;
 import android.content.res.AssetManager;
+import android.util.Log;
+
+import com.example.prototype.DataManager;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 
-/**
- * Utility class for reading JSON files from the assets folder
- * and converting them to Java data structures.
- */
-public class JsonAssetReader {
+public class CardReader {
+    private static final String TAG = "CardReader";
+    private static DataManager instance;
+    private List<DataManager.Item> itemList;
 
     private Context context;
-
-    public JsonAssetReader(Context context) {
+    
+    public CardReader(Context context) {
         this.context = context;
     }
 
     /**
      * Progressively reads all items from a JSON array file in the assets folder.
-     * This method reads the entire JSON array and returns a list of all items.
+     * This method reads the entire JSON array and returns a list of all Item objects.
      *
      * @param fileName The name of the JSON file in the assets folder
-     * @return List of Maps representing all JSON objects in the array
+     * @return List of Item objects representing all JSON objects in the array
      * @throws IOException if file cannot be read
      * @throws JSONException if JSON is malformed
      */
-    public List<Map<String, Object>> readAllItemsFromAssets(String fileName) 
+    public List<DataManager.Item> readAllItemsFromAssets(String fileName) 
             throws IOException, JSONException {
         
         String jsonString = loadJsonFromAssets(fileName);
         JSONArray jsonArray = new JSONArray(jsonString);
         
-        List<Map<String, Object>> allItems = new ArrayList<>();
+        List<DataManager.Item> allItems = new ArrayList<>();
         
         // Progressively read each item in the array
         for (int i = 0; i < jsonArray.length(); i++) {
             JSONObject jsonObject = jsonArray.getJSONObject(i);
-            Map<String, Object> item = jsonObjectToMap(jsonObject);
+            DataManager.Item item = jsonObjectToItem(jsonObject);
             allItems.add(item);
             
-            // Optional: Log progress for debugging
-            // Log.d("JsonAssetReader", "Processed item " + (i + 1) + " of " + jsonArray.length());
+            // Log progress for debugging
+            Log.d(TAG, "Processed item " + (i + 1) + " of " + jsonArray.length() + 
+                  ": " + item.getEng_word());
         }
         
+        Log.d(TAG, "Successfully loaded " + allItems.size() + " items from " + fileName);
         return allItems;
     }
 
     /**
      * Progressively reads items from a JSON array file with a callback for each item.
-     * This allows processing items one by one without loading all into memory at once.
+     * This allows processing items one by one as they're read.
      *
      * @param fileName The name of the JSON file in the assets folder
      * @param callback Interface to handle each item as it's processed
@@ -73,18 +77,22 @@ public class JsonAssetReader {
         JSONArray jsonArray = new JSONArray(jsonString);
         
         int totalItems = jsonArray.length();
+        Log.d(TAG, "Starting progressive read of " + totalItems + " items from " + fileName);
         
         // Process each item progressively
         for (int i = 0; i < totalItems; i++) {
             JSONObject jsonObject = jsonArray.getJSONObject(i);
-            Map<String, Object> item = jsonObjectToMap(jsonObject);
+            DataManager.Item item = jsonObjectToItem(jsonObject);
             
             // Call the callback with current item, index, and total count
             callback.onItemProcessed(item, i, totalItems);
+            
+            Log.d(TAG, "Processed item " + (i + 1) + "/" + totalItems + ": " + item.getEng_word());
         }
         
         // Notify completion
         callback.onAllItemsProcessed(totalItems);
+        Log.d(TAG, "Completed progressive reading of all " + totalItems + " items");
     }
 
     /**
@@ -93,11 +101,11 @@ public class JsonAssetReader {
     public interface ItemCallback {
         /**
          * Called for each item as it's processed
-         * @param item The processed item as a Map
+         * @param item The processed Item object
          * @param currentIndex Current item index (0-based)
          * @param totalItems Total number of items in the file
          */
-        void onItemProcessed(Map<String, Object> item, int currentIndex, int totalItems);
+        void onItemProcessed(DataManager.Item item, int currentIndex, int totalItems);
         
         /**
          * Called when all items have been processed
@@ -107,46 +115,20 @@ public class JsonAssetReader {
     }
 
     /**
-     * Reads a JSON file from assets and returns it as a List of Maps.
-     * Each Map represents a JSON object with key-value pairs.
+     * Reads a single JSON object from assets and returns it as an Item.
      *
      * @param fileName The name of the JSON file in the assets folder
-     * @return List of Maps representing the JSON data
+     * @return Item representing the JSON object
      * @throws IOException if file cannot be read
      * @throws JSONException if JSON is malformed
      */
-    public List<Map<String, Object>> readJsonArrayFromAssets(String fileName) 
+    public DataManager.Item readJsonObjectFromAssets(String fileName)
             throws IOException, JSONException {
-        
-        String jsonString = loadJsonFromAssets(fileName);
-        JSONArray jsonArray = new JSONArray(jsonString);
-        
-        List<Map<String, Object>> resultList = new ArrayList<>();
-        
-        for (int i = 0; i < jsonArray.length(); i++) {
-            JSONObject jsonObject = jsonArray.getJSONObject(i);
-            Map<String, Object> map = jsonObjectToMap(jsonObject);
-            resultList.add(map);
-        }
-        
-        return resultList;
-    }
 
-    /**
-     * Reads a single JSON object from assets and returns it as a Map.
-     *
-     * @param fileName The name of the JSON file in the assets folder
-     * @return Map representing the JSON object
-     * @throws IOException if file cannot be read
-     * @throws JSONException if JSON is malformed
-     */
-    public Map<String, Object> readJsonObjectFromAssets(String fileName) 
-            throws IOException, JSONException {
-        
         String jsonString = loadJsonFromAssets(fileName);
         JSONObject jsonObject = new JSONObject(jsonString);
-        
-        return jsonObjectToMap(jsonObject);
+
+        return jsonObjectToItem(jsonObject);
     }
 
     /**
@@ -159,73 +141,52 @@ public class JsonAssetReader {
     public String loadJsonFromAssets(String fileName) throws IOException {
         AssetManager assetManager = context.getAssets();
         InputStream inputStream = assetManager.open(fileName);
-        
+
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
         StringBuilder jsonBuilder = new StringBuilder();
         String line;
-        
+
         while ((line = reader.readLine()) != null) {
             jsonBuilder.append(line);
         }
-        
+
         inputStream.close();
         reader.close();
-        
+
         return jsonBuilder.toString();
     }
 
     /**
-     * Converts a JSONObject to a Map recursively.
+     * Converts a JSONObject to an Item recursively.
      *
      * @param jsonObject The JSONObject to convert
-     * @return Map representation of the JSONObject
+     * @return Item representation of the JSONObject
      * @throws JSONException if JSON is malformed
      */
-    private Map<String, Object> jsonObjectToMap(JSONObject jsonObject) throws JSONException {
-        Map<String, Object> map = new HashMap<>();
+    private DataManager.Item jsonObjectToItem(JSONObject jsonObject) throws JSONException {
+        DataManager.Item item = new DataManager.Item();
         Iterator<String> keys = jsonObject.keys();
-        
+
         while (keys.hasNext()) {
             String key = keys.next();
             Object value = jsonObject.get(key);
-            
-            if (value instanceof JSONObject) {
-                // Recursively convert nested JSON objects
-                map.put(key, jsonObjectToMap((JSONObject) value));
-            } else if (value instanceof JSONArray) {
-                // Convert JSON arrays to lists
-                map.put(key, jsonArrayToList((JSONArray) value));
-            } else {
-                // Primitive values (String, Integer, Boolean, etc.)
-                map.put(key, value);
-            }
-        }
-        
-        return map;
-    }
 
-    /**
-     * Converts a JSONArray to a List recursively.
-     *
-     * @param jsonArray The JSONArray to convert
-     * @return List representation of the JSONArray
-     * @throws JSONException if JSON is malformed
-     */
-    private List<Object> jsonArrayToList(JSONArray jsonArray) throws JSONException {
-        List<Object> list = new ArrayList<>();
-        
-        for (int i = 0; i < jsonArray.length(); i++) {
-            Object value = jsonArray.get(i);
-            
-            if (value instanceof JSONObject) {
-                list.add(jsonObjectToMap((JSONObject) value));
-            } else if (value instanceof JSONArray) {
-                list.add(jsonArrayToList((JSONArray) value));
-            } else {
-                list.add(value);
+            switch (key){
+                case "rus_word":
+                    item.setRus_word(value.toString());
+                    break;
+                case "eng_word":
+                    item.setEng_word(value.toString());
+                    break;
+                case "transcript":
+                    item.setTranscript(value.toString());
+                    break;
+                default:
+                    Log.w(TAG, "Unknown key found while reading: " + key);
+                    break;
             }
         }
-        
-        return list;
+
+        return item;
     }
 }
